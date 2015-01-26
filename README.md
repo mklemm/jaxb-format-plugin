@@ -18,7 +18,7 @@ annotations.
 - Add jaxb-format-plugin.jar to the classpath of the XJC. See below on examples about how to do that with Maven.
 - Enable extension processing in XJC by specifying the "-extension" command line option. See below for Maven example.
 - Enable jaxb-format-plugin by giving "-Xformat" on the XJC command line, followed by "-formatter=<formatter class>" and
-  optionally "-method=<method name>". <formatter class> is the fully qualified name of a utility class used to format
+  optionally one of the other options explained below. <formatter class> is the fully qualified name of a utility class used to format
   an instance according to a given expression. This utility class does not need to implement a specific interface, but
   it must have a public one-argument constructor "C(String expression)" taking a given formatting expression as its
   single argument, and it must have a public instance method "format(Object instance)", which is called to actually
@@ -34,24 +34,25 @@ groupId: com.kscs.util
 artifactId: jaxb-format-plugin
 
 ### Plugin Activation
-<table>
-<tr><th colspan="2">-Xformat -format=<formatter class name> [-method=<generated method name>]</th></tr>
-<tr><th>-Xformat:</th><td>Plugin activation.</td></tr>
-<tr><th>-formatter</th><td>Mandatory. Fully qualified class name of the class doing the actual formatting.
-					The class does not need to be in the classpath at the time code is generated. It also does
-					not need to implement a specific interface.
-					It must have the following properties:
-						1. Public constructor taking the expression string as single argument. The helper
-							class will be instantiated once for every generated class that is given an
-							"expression" customization. The expression will be passed into this constructor,
-							the implementation should the compile or otherwise process the expression to
-							an internal state.
-						2. Public instance method "String format(Object instance)" returning
-							a string representation of the given instance according to the expression
-							given in the constructor.</td></tr>
-<tr><th>-method</th><td>Name of the method to be generated, defaults to "toString". The generated method
-					will always be public, have a return value of type java.lang.String, and will have no parameters.</td></tr>
-</table>
+		-Xformat
+		-formatter=<class name>                     Fully qualified name of formatter class. Mandatory.
+		-formatter-method=<method name>             Name of formatter instance method to invoke. Optional, default: "format"
+		-formatter-field=<field name>               Name of the instance field that holds the formatter instance in the generated class. Optional, default: "__objectFormatter"
+		-generated-method=<method name>             Name of the generated method. Optional, default: "toString"
+		-generated-method-type=<class name>         Fully qualified name of the return type of the generated method. Optional, default: "java.lang.String"
+		-generated-method-modifiers=<Modifiers>     Space-separated list of modifiers for the generated method. Optional, default: "public"
+
+The formatter class does not need to be in the classpath at the time code is generated. It also does
+not need to implement a specific interface.
+It must have the following properties:
+1. Public constructor taking the expression string as single argument. The helper
+	class will be instantiated once for every generated class that is given an
+	"expression" customization. The expression will be passed into this constructor,
+	the implementation should the compile or otherwise process the expression to
+	an internal state.
+2. Public instance method that takes an instance of the generated class as an argument.
+	The return type of this method must be the same as the return type of the generated method.
+
 ## Examples
 ### Setting up your maven project
 
