@@ -24,9 +24,8 @@ annotations.
   single argument, and it must have a public instance method "format(Object instance)", which is called to actually
   return the formatted string representation. The utility class or its dependencies do not need to be in the classpath
   at the time XJC generates code, but they must be in the compile-time classpath of the generated source tree.
-  If <method name> is given, it specifies the name of the generated formatting method, "toString" by default. The generated
-  method always is public, returns a java.lang.String, and has no parameters. Both "-formatter" and "-method" settings
-  can be overridden on complexType or element level by JAXB binding customizations <formatter> and <method>.
+- Add "expression" binding customizations to complexType definitions in your XSD or separate binding customization file.
+  Also, it is possible to override the global command-line settings with binding customizations, see [reference](#reference) below.
 
 ## Reference
 ### Plugin artifact
@@ -55,17 +54,125 @@ It must have the following properties:
 
 ### Binding customizations
 For binding customization elements, see the attached XSD.
-The following binding customizations are provided by this plugin:
-		<expression select="expression">            Expression string passed to the formatter class. It is up to the formatter
-													implementation whether to compile, cache or otherwise process the expression.
-													In any case, invocation of the formatting method must return a representation
-													of the current instance of the generated class dependent on this expression.
-													See below for examples on how to do this with XPath.
-
-		<
-
 
 ## Examples
-### Setting up your maven project
+### Using with Maven and [jxpath-object-formatter](http://github.com/mklemm/jxpath-object-formatter)
+This shows you how to generate "toString()" methods for your generated classes, which return a
+string representation of the object based on an XPath expression that evaluates to a string.
 
+Based on apache [commons-jxpath](http://github.com/mklemm/commons-jxpath), you can specify
+an XPath expression on every complexType definition, which will then be evaluated against
+the java object tree in memory, NOT the serialized XML representation of your JAXB object.
+This way, generated toString methods can be used anywhere in your code at runtime without
+serializing/deserializing your object.
 
+The [jxpath-object-formatter](http://github.com/mklemm/jxpath-object-formatter) implementation
+uses a modified version of jxpath that lets you write your XPath expressions using the XML names
+of object's properties, represented as XML elements and attributes, as opposed to the standard
+commons-jxpath that can evaluate expressions only if node references are given as JavaBeans property
+names. This way, there should be no syntactical difference in your XPath expressions, whether they
+are processing the serialized XML document or the object graph in memory.
+Additionally, jxpath-object-formatter defines custom XPath functions to format java.util.Date values etc.
+
+#### Maven setup
+1. Add runtime dependency to jxpath-object-formatter:
+
+		<dependencies>
+			<!-- ... other dependencies -->
+			<dependency>
+                <groupId>com.kscs.util</groupId>
+                <artifactId>jxpath-object-formatter</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+			<!-- ... other dependencies -->
+        </depenendcies>
+
+2. Enable the jaxb2-maven-plugin to generate java code from XSD:
+
+		<build>
+			<!-- ... other build stuff -->
+			<plugins>
+				<!-- ... other plugins -->
+				<plugin>
+                	<groupId>org.jvnet.jaxb2.maven2</groupId>
+                    <artifactId>maven-jaxb2-plugin</artifactId>
+                    <version>0.11.0</version>
+                    <executions>
+                        <execution>
+                            <id>xsd-generate-2.2</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>generate</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <schemaIncludes>
+                            <schemaInclude>**/*.xsd</schemaInclude>
+                        </schemaIncludes>
+                        <strict>true</strict>
+                        <verbose>true</verbose>
+                        <extension>true</extension>
+                        <removeOldOutput>true</removeOldOutput>
+                        <specVersion>2.2</specVersion>
+                        <episode>true</episode>
+                        <useDependenciesAsEpisodes>true</useDependenciesAsEpisodes>
+                        <scanDependenciesForBindings>false</scanDependenciesForBindings>
+                        <args>
+							<!-- ... other XJC plugin args -->
+                            <arg>-Xformat</arg> <!-- format plugin activation -->
+                            <arg>-formatter</arg>
+                            <arg>com.kscs.util.jaxb.ObjectFormatter</arg> <!-- class name of formatter class (see above) -->
+                        </args>
+                        <plugins>
+							<!-- ... other XJC plugin references -->
+                            <plugin>
+                                <!-- format plugin reference -->
+                                <groupId>com.kscs.util</groupId>
+                                <artifactId>jaxb-format-plugin</artifactId>
+                                <version>1.0.0</version>
+                            </plugin>
+                        </plugins>
+                    </configuration>
+                </plugin>
+			</plugins>
+		</build>
+
+#### Use it in XSD
+Ths is an example how to specify the binding customizations inline in the XSD file,
+please refer to the JAXB/XJC documentation on how to do that in a separate binding
+file.
+In any case, you must declare a namespace prefix for the "http://www.kscs.com/util/jaxb/format"
+namespace, and then use (at least) the "expression" customization.
+
+		<schema xmlns="http://www.w3.org/2001/XMLSchema" version="1.0"
+			targetNamespace="http://my.namespace.org/myschema"
+			xmlns:format="http://www.kscs.com/util/jaxb/format">
+
+			<!-- ... other definitions -->
+
+			<complexType name="my-type">
+				<annotation>
+					<appInfo>
+						<format:expression select="concat('My Object is ', @name, ', created at: ', format:isoDate(created-at))"/>
+					</appInfo>
+				</annotation>
+				<sequence>
+					<element name="created-at" type="datetime"/>
+				</sequence>
+				<attribute name="name" type="string"/>
+			</complexType>
+		</schema>
+
+#### Use the generated "toString()" method
+You can now write something like this:
+
+		MyType myObject = new MyType();
+		myObject.setName("First instance");
+		myObject.setCreatedAt(new Date());
+		System.out.println(myObject);
+
+And it will print something like:
+
+		My object is First instance, created at: 2015-01-26T11:30:00Z
+		 
