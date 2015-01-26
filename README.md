@@ -9,10 +9,11 @@ method should return a generic string representation of the object they are call
 This plugin, however, gives you full control over the shape of the string representation of an object, and
 also lets you specify the name of the generated method (defaults to "toString") and a helper class
 that does the actual formatting.
-An example helper class that uses XPath expressions as the building blocks of the formatting engine
-is given in the jaxb-jxpath github repository, which is a fork of the apache commons-jxpath project, modified
-to support XPath expressions using the actual XML names of JAXB-bindable properties, by processing JAXB-specific source-level
-annotations.
+An example formatter class that uses XPath expressions as the building blocks of the formatting engine
+is given in the [jaxb-object-formatter](http://github.com/mklemm/jaxb-object-formatter) repository,
+which uses a fork of the apache [commons-jxpath](http://github.com/mklemm/commons-jxpath) project, modified to
+support XPath expressions using the actual XML names of JAXB-bindable properties, by processing JAXB-specific
+source-level annotations.
 
 ## Usage
 - Add jaxb-format-plugin.jar to the classpath of the XJC. See below on examples about how to do that with Maven.
@@ -175,4 +176,3 @@ You can now write something like this:
 And it will print something like:
 
 		My object is First instance, created at: 2015-01-26T11:30:00Z
-		 
