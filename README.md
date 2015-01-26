@@ -18,13 +18,8 @@ source-level annotations.
 ## Usage
 - Add jaxb-format-plugin.jar to the classpath of the XJC. See below on examples about how to do that with Maven.
 - Enable extension processing in XJC by specifying the "-extension" command line option. See below for Maven example.
-- Enable jaxb-format-plugin by giving "-Xformat" on the XJC command line, followed by "-formatter=<formatter class>" and
-  optionally one of the other options explained below. <formatter class> is the fully qualified name of a utility class used to format
-  an instance according to a given expression. This utility class does not need to implement a specific interface, but
-  it must have a public one-argument constructor "C(String expression)" taking a given formatting expression as its
-  single argument, and it must have a public instance method "format(Object instance)", which is called to actually
-  return the formatted string representation. The utility class or its dependencies do not need to be in the classpath
-  at the time XJC generates code, but they must be in the compile-time classpath of the generated source tree.
+- Enable jaxb-format-plugin by giving "-Xformat" on the XJC command line, followed optionally by one of the options
+  explained below.
 - Add "expression" binding customizations to complexType definitions in your XSD or separate binding customization file.
   Also, it is possible to override the global command-line settings with binding customizations, see [reference](#reference) below.
 
@@ -35,7 +30,7 @@ artifactId: jaxb-format-plugin
 
 ### Plugin Activation
 		-Xformat
-		-formatter=<class name>                     Fully qualified name of formatter class. Mandatory.
+		-formatter=<class name>                     Fully qualified name of formatter class. Optional, but if missing, class must be specified in global or local "formatter" binding customization.
 		-formatter-method=<method name>             Name of formatter instance method to invoke. Optional, default: "format"
 		-formatter-field=<field name>               Name of the instance field that holds the formatter instance in the generated class. Optional, default: "__objectFormatter"
 		-generated-method=<method name>             Name of the generated method. Optional, default: "toString"
@@ -144,10 +139,14 @@ Ths is an example how to specify the binding customizations inline in the XSD fi
 please refer to the JAXB/XJC documentation on how to do that in a separate binding
 file.
 In any case, you must declare a namespace prefix for the "http://www.kscs.com/util/jaxb/format"
-namespace, and then use (at least) the "expression" customization.
+namespace, and then use (at least) the "expression" customization. Also note the declaration of
+the JAXB namespace, and the jxb:version and jxb:extensionBindingPrefixes attributes.
 
 		<schema xmlns="http://www.w3.org/2001/XMLSchema" version="1.0"
 			targetNamespace="http://my.namespace.org/myschema"
+			xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+			jxb:version="2.1"
+			jxb:extensionBindingPrefixes="format"
 			xmlns:format="http://www.kscs.com/util/jaxb/format">
 
 			<!-- ... other definitions -->
