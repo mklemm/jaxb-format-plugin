@@ -53,6 +53,18 @@ It must have the following properties:
 2. Public instance method that takes an instance of the generated class as an argument.
 	The return type of this method must be the same as the return type of the generated method.
 
+### Binding customizations
+For binding customization elements, see the attached XSD.
+The following binding customizations are provided by this plugin:
+		<expression select="expression">            Expression string passed to the formatter class. It is up to the formatter
+													implementation whether to compile, cache or otherwise process the expression.
+													In any case, invocation of the formatting method must return a representation
+													of the current instance of the generated class dependent on this expression.
+													See below for examples on how to do this with XPath.
+
+		<
+
+
 ## Examples
 ### Setting up your maven project
 
