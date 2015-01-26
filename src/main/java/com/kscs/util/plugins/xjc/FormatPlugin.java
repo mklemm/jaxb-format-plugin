@@ -45,6 +45,7 @@ import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.model.CPluginCustomization;
+import com.sun.tools.xjc.model.Model;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
@@ -125,9 +126,6 @@ public class FormatPlugin extends Plugin {
 		if ((FormatPlugin.OPTION_NAME).equals(args[i])) {
 			currentIndex = parseOptions(args, i, this.setters);
 		}
-		if (this.objectFormatterClassName == null) {
-			throw new BadCommandLineException(FormatPlugin.RESOURCE_BUNDLE.getString("exception.missingFormatter"));
-		}
 		return currentIndex - i + 1;
 	}
 
@@ -148,16 +146,31 @@ public class FormatPlugin extends Plugin {
 
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
+		final CPluginCustomization objectFormatterCustomization = getGlobalCustomization(outline.getModel(), FormatPlugin.OBJECT_FORMATTER_CUSTOMIZATION_NAME);
+		if(objectFormatterCustomization != null) {
+			objectFormatterCustomization.markAsAcknowledged();
+			this.objectFormatterClassName = getCustomizationAttribute(objectFormatterCustomization, "class", this.objectFormatterClassName);
+			this.objectFormatterMethodName = getCustomizationAttribute(objectFormatterCustomization, "method", this.objectFormatterMethodName);
+			this.objectFormatterFieldName = getCustomizationAttribute(objectFormatterCustomization, "field", this.objectFormatterFieldName);
+		}
+
+		final CPluginCustomization generatedMethodCustomization = getGlobalCustomization(outline.getModel(), FormatPlugin.GENERATED_METHOD_CUSTOMIZATION_NAME);
+		if(generatedMethodCustomization != null) {
+			generatedMethodCustomization.markAsAcknowledged();
+			this.generatedMethodName = getCustomizationAttribute(generatedMethodCustomization, "name", this.generatedMethodName);
+			this.generatedMethodReturnTypeName = getCustomizationAttribute(generatedMethodCustomization, "type", this.generatedMethodReturnTypeName);
+			this.generatedMethodModifiers = getCustomizationAttribute(generatedMethodCustomization, "modifiers", this.generatedMethodModifiers);
+		}
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final String expression = getCustomizationValue(errorHandler, classOutline, FormatPlugin.EXPRESSION_CUSTOMIZATION_NAME, "select");
 			if (expression != null && expression.length() > 0) {
-				generateToStringMethod(outline.getCodeModel(), classOutline, expression);
+				generateToStringMethod(errorHandler, outline.getCodeModel(), classOutline, expression);
 			}
 		}
 		return false;
 	}
 
-	private void generateToStringMethod(final JCodeModel model, final ClassOutline classOutline, final String expression) {
+	private void generateToStringMethod(final ErrorHandler errorHandler, final JCodeModel model, final ClassOutline classOutline, final String expression) throws SAXException {
 		final String formatterClassName;
 		final String formatterMethodName;
 		final String formatterFieldName;
@@ -171,6 +184,9 @@ public class FormatPlugin extends Plugin {
 			formatterClassName = this.objectFormatterClassName;
 			formatterMethodName = this.objectFormatterMethodName;
 			formatterFieldName = this.objectFormatterFieldName;
+		}
+		if (this.objectFormatterClassName == null) {
+			errorHandler.error(new SAXParseException(FormatPlugin.RESOURCE_BUNDLE.getString("exception.missingFormatter"), classOutline.target.getLocator()));
 		}
 		final CPluginCustomization generatedMethodCustomization = getCustomizationElement(classOutline, FormatPlugin.GENERATED_METHOD_CUSTOMIZATION_NAME);
 		final String methodName;
@@ -285,6 +301,10 @@ public class FormatPlugin extends Plugin {
 
 	private CPluginCustomization getCustomizationElement(final ClassOutline classOutline, final String elementName) {
 		return classOutline.target.getCustomizations().find(FormatPlugin.CUSTOMIZATION_NS, elementName);
+	}
+
+	private CPluginCustomization getGlobalCustomization(final Model model, final String elementName) {
+		return model.getCustomizations().find(FormatPlugin.CUSTOMIZATION_NS, elementName);
 	}
 
 	private static interface Setter<T> {

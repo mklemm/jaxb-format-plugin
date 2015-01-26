@@ -16,10 +16,13 @@ support XPath expressions using the actual XML names of JAXB-bindable properties
 source-level annotations.
 
 ## Usage
+- Add a formatter class (see below) to the compile and runtime classpath of your application.
 - Add jaxb-format-plugin.jar to the classpath of the XJC. See below on examples about how to do that with Maven.
 - Enable extension processing in XJC by specifying the "-extension" command line option. See below for Maven example.
 - Enable jaxb-format-plugin by giving "-Xformat" on the XJC command line, followed optionally by one of the options
   explained below.
+- Specify the fully qualified name of the formatter class either with the "-formatter" command line option or
+  in the XSD or binding-config file with the <formatter> binding customization on the global or complexType level.
 - Add "expression" binding customizations to complexType definitions in your XSD or separate binding customization file.
   Also, it is possible to override the global command-line settings with binding customizations, see [reference](#reference) below.
 
@@ -38,8 +41,10 @@ artifactId: jaxb-format-plugin
 		-generated-method-modifiers=<Modifiers>     Space-separated list of modifiers for the generated method. Optional, default: "public"
 
 The formatter class does not need to be in the classpath at the time code is generated. It also does
-not need to implement a specific interface.
-It must have the following properties:
+not need to implement a specific interface. It must, however, be in the classpath when
+the generated code is compiled by the java compiler.
+
+The formatter class must have the following properties:
 1. Public constructor taking the expression string as single argument. The helper
 	class will be instantiated once for every generated class that is given an
 	"expression" customization. The expression will be passed into this constructor,
