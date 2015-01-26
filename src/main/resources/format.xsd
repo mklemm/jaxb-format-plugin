@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema xmlns="http://www.w3.org/2001/XMLSchema"
-		xmlns:tns="http://www.kscs.com/util/jaxb/format"
 		targetNamespace="http://www.kscs.com/util/jaxb/format">
 	<!--
 	  ~ MIT License
@@ -26,18 +25,103 @@
 	  ~ THE SOFTWARE.
 	  -->
 	<element name="expression">
+		<annotation>
+			<documentation>
+				Customization element to specify an expression by which an instance of the class
+				generated from this complexType should be formatted or otherwise processed.
+				The result of this processing will be the return value of the generated method.
+			</documentation>
+		</annotation>
 		<complexType>
-			<attribute name="select" type="string" use="required"/>
+			<attribute name="select" type="string" use="required">
+				<annotation>
+					<documentation>
+						Expression string passed to the formatter class. It is up to the formatter
+						implementation whether to compile, cache or otherwise process the expression.
+						In any case, invocation of the formatting method must return a representation
+						of the current instance of the generated class dependent on this expression.
+						See below for examples on how to do this with XPath.
+					</documentation>
+				</annotation>
+			</attribute>
 		</complexType>
 	</element>
 	<element name="formatter">
+		<annotation>
+			<documentation>
+				This binding customization specifies the formatter class which
+				will be called in the generated code to create a formatted
+				representation of an instance of the generated class.
+			</documentation>
+		</annotation>
 		<complexType>
-			<attribute name="class" type="string" use="required"/>
+			<attribute name="class" type="string" use="optional">
+				<annotation>
+					<documentation>
+						The fully qualified name of the java class to perform the formatting.
+						The class must have a one-argument constructor that receives the expression
+						configured above and does whatever pre-processing on it to ensure the
+						expression can be evaluated repeatedly on different instances.
+						Default: Name configured on the command line with &quot;-formatter&quot;, which is mandatory.
+					</documentation>
+				</annotation>
+			</attribute>
+			<attribute name="method" type="string" use="optional">
+				<annotation>
+					<documentation>
+						Name of the formatting method of the formatter class that
+						will be called when an actual formatted representation
+						is requested via the generated method.
+						This method must have the same return type as the generated method (usually java.lang.String)
+						and must take as a single argument the instance of the generated class.
+						Default: Name configured on the command line with &quot;-formatter-method&quot;, or &quot;format&quot;.
+					</documentation>
+				</annotation>
+			</attribute>
+			<attribute name="field" type="string" use="optional">
+				<annotation>
+					<documentation>
+						Name of the instance field in the generated class to hold the instance
+						of the formatter class. Default: Name configured on the command line with &quot;-formatter-field&quot;,
+						or &quot;__objectFormatter&quot;.
+					</documentation>
+				</annotation>
+			</attribute>
 		</complexType>
 	</element>
 	<element name="method">
+		<annotation>
+			<documentation>
+				Specifies the method that will be generated in the JAXB class to return a formatted
+				representation of an instance of the generated class.
+			</documentation>
+		</annotation>
 		<complexType>
-			<attribute name="name" type="string" use="required"/>
+			<attribute name="name" type="string" use="optional">
+				<annotation>
+					<documentation>
+						Specifies the method name. Default: Name configured on the command line with &quot;-generated-method&quot;,
+						or &quot;toString&quot;.
+					</documentation>
+				</annotation>
+			</attribute>
+			<attribute name="type" type="string" use="optional">
+				<annotation>
+					<documentation>
+						Return type of the generated method. Note that the return type of the generated method must match
+						the return type of the delegated formatter method.
+						Default: Value configured on the command line with &quot;-generated-method-type&quot;, or &quot;java.lang.String&quot;.
+					</documentation>
+				</annotation>
+			</attribute>
+			<attribute name="modifiers" type="string" use="optional">
+				<annotation>
+					<documentation>
+						Whitespace-separated list of modifiers of the generated method.
+						Default: Value configured on the command line with &quot;-generated-method-modifiers&quot;, or &quot;public&quot;.
+					</documentation>
+				</annotation>
+			</attribute>
 		</complexType>
 	</element>
 </schema>
