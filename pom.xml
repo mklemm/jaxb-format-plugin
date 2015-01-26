@@ -6,7 +6,7 @@
 
 	<groupId>com.kscs.util</groupId>
 	<artifactId>jaxb-format-plugin</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1-SNAPSHOT</version>
 
 	<name>JAXB instance formatting plugin</name>
 	<packaging>jar</packaging>
@@ -19,7 +19,7 @@
 		<connection>scm:git:https://github.com/mklemm/jaxb-format-plugin.git</connection>
 		<developerConnection>scm:git:https://github.com/mklemm/jaxb-format-plugin.git</developerConnection>
 		<url>https://github.com/mklemm/jaxb-format-plugin.git</url>
-		<tag>jaxb-format-plugin-1.0.0</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<dependencies>
