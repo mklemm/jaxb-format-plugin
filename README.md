@@ -33,12 +33,26 @@ artifactId: jaxb-format-plugin
 
 ### Plugin Activation
 		-Xformat
-		-formatter=<class name>                     Fully qualified name of formatter class. Optional, but if missing, class must be specified in global or local "formatter" binding customization.
-		-formatter-method=<method name>             Name of formatter instance method to invoke. Optional, default: "format"
-		-formatter-field=<field name>               Name of the instance field that holds the formatter instance in the generated class. Optional, default: "__objectFormatter"
-		-generated-method=<method name>             Name of the generated method. Optional, default: "toString"
-		-generated-method-type=<class name>         Fully qualified name of the return type of the generated method. Optional, default: "java.lang.String"
-		-generated-method-modifiers=<Modifiers>     Space-separated list of modifiers for the generated method. Optional, default: "public"
+		-formatter=<class name>                     Fully qualified name of formatter class.
+													Optional, but if missing, class must be specified
+													in global or local "formatter" binding customization.
+
+		-formatter-method=<method name>             Name of formatter instance method to invoke.
+													Optional, default: "format"
+
+		-formatter-field=<field name>               Name of the instance field that holds the formatter
+													instance in the generated class.
+													Optional, default: "__objectFormatter"
+
+		-generated-method=<method name>             Name of the generated method.
+													Optional, default: "toString"
+
+		-generated-method-type=<class name>         Fully qualified name of the return type of the
+													generated method.
+													Optional, default: "java.lang.String"
+
+		-generated-method-modifiers=<Modifiers>     Space-separated list of modifiers for the generated method.
+													Optional, default: "public"
 
 The formatter class does not need to be in the classpath at the time code is generated. It also does
 not need to implement a specific interface. It must, however, be in the classpath when
@@ -54,7 +68,7 @@ The formatter class must have the following properties:
 	The return type of this method must be the same as the return type of the generated method.
 
 ### Binding customizations
-For binding customization elements, see the attached XSD.
+For binding customization elements, see the [attached XSD](https://raw.githubusercontent.com/mklemm/jaxb-format-plugin/master/src/main/resources/format.xsd).
 
 ## Examples
 ### Using with Maven and [jxpath-object-formatter](http://github.com/mklemm/jxpath-object-formatter)
