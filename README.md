@@ -59,11 +59,13 @@ not need to implement a specific interface. It must, however, be in the classpat
 the generated code is compiled by the java compiler.
 
 The formatter class must have the following properties:
+
 1. Public constructor taking the expression string as single argument. The helper
-	class will be instantiated once for every generated class that is given an
+	class will be instantiated once for each instance of every generated class that is given an
 	"expression" customization. The expression will be passed into this constructor,
-	the implementation should the compile or otherwise process the expression to
+	the implementation should then compile or otherwise process the expression to
 	an internal state.
+
 2. Public instance method that takes an instance of the generated class as an argument.
 	The return type of this method must be the same as the return type of the generated method.
 
