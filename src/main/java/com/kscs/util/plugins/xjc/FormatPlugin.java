@@ -72,11 +72,13 @@ public class FormatPlugin extends Plugin {
 	public static final List<String> CUSTOM_ELEMENTS = Arrays.asList(FormatPlugin.EXPRESSION_CUSTOMIZATION_NAME, FormatPlugin.OBJECT_FORMATTER_CUSTOMIZATION_NAME, FormatPlugin.GENERATED_METHOD_CUSTOMIZATION_NAME);
 	public static final String DEFAULT_OBJECT_FORMATTER_METHOD_NAME = "format";
 	public static final String DEFAULT_OBJECT_FORMATTER_FIELD_NAME = "__objectFormatter";
+	public static final String DEFAULT_OBJECT_FORMATTER_FIELD_MODIFIERS = "private transient";
 	public static final String DEFAULT_GENERATED_METHOD_RETURN_TYPE_NAME = "java.lang.String";
 
 	private String objectFormatterClassName = null;
 	private String objectFormatterMethodName = FormatPlugin.DEFAULT_OBJECT_FORMATTER_METHOD_NAME;
 	private String objectFormatterFieldName = FormatPlugin.DEFAULT_OBJECT_FORMATTER_FIELD_NAME;
+	private String objectFormatterFieldModifiers = FormatPlugin.DEFAULT_OBJECT_FORMATTER_FIELD_MODIFIERS;
 
 	private String generatedMethodName = FormatPlugin.DEFAULT_GENERATED_METHOD_NAME;
 	private String generatedMethodModifiers = FormatPlugin.DEFAULT_GENERATED_METHOD_MODIFIERS;
@@ -96,6 +98,11 @@ public class FormatPlugin extends Plugin {
 		put("-formatter-field", new Setter<String>() {
 			public void set(final String val) {
 				FormatPlugin.this.objectFormatterFieldName = val;
+			}
+		});
+		put("-formatter-field-modifiers", new Setter<String>() {
+			public void set(final String val) {
+				FormatPlugin.this.objectFormatterFieldModifiers = val;
 			}
 		});
 		put("-generated-method", new Setter<String>() {
@@ -152,6 +159,7 @@ public class FormatPlugin extends Plugin {
 			this.objectFormatterClassName = getCustomizationAttribute(objectFormatterCustomization, "class", this.objectFormatterClassName);
 			this.objectFormatterMethodName = getCustomizationAttribute(objectFormatterCustomization, "method", this.objectFormatterMethodName);
 			this.objectFormatterFieldName = getCustomizationAttribute(objectFormatterCustomization, "field", this.objectFormatterFieldName);
+			this.objectFormatterFieldModifiers = getCustomizationAttribute(objectFormatterCustomization, "modifiers", this.objectFormatterFieldModifiers);
 		}
 
 		final CPluginCustomization generatedMethodCustomization = getGlobalCustomization(outline.getModel(), FormatPlugin.GENERATED_METHOD_CUSTOMIZATION_NAME);
@@ -174,16 +182,19 @@ public class FormatPlugin extends Plugin {
 		final String formatterClassName;
 		final String formatterMethodName;
 		final String formatterFieldName;
+		final int formatterFieldModifiers;
 		final CPluginCustomization classCustomization = getCustomizationElement(classOutline, FormatPlugin.OBJECT_FORMATTER_CUSTOMIZATION_NAME);
 		if (classCustomization != null) {
 			classCustomization.markAsAcknowledged();
 			formatterClassName = getCustomizationAttribute(classCustomization, "class", this.objectFormatterClassName);
 			formatterMethodName = getCustomizationAttribute(classCustomization, "method", this.objectFormatterMethodName);
 			formatterFieldName = getCustomizationAttribute(classCustomization, "field", this.objectFormatterFieldName);
+			formatterFieldModifiers = parseModifiers(getCustomizationAttribute(classCustomization, "modifiers", this.objectFormatterFieldModifiers));
 		} else {
 			formatterClassName = this.objectFormatterClassName;
 			formatterMethodName = this.objectFormatterMethodName;
 			formatterFieldName = this.objectFormatterFieldName;
+			formatterFieldModifiers = parseModifiers(this.objectFormatterFieldModifiers);
 		}
 		if (this.objectFormatterClassName == null) {
 			errorHandler.error(new SAXParseException(FormatPlugin.RESOURCE_BUNDLE.getString("exception.missingFormatter"), classOutline.target.getLocator()));
@@ -204,7 +215,7 @@ public class FormatPlugin extends Plugin {
 		}
 		final JClass objectFormatterClass = model.ref(formatterClassName);
 		final JDefinedClass definedClass = classOutline.implClass;
-		final JFieldVar objectFormatterField = definedClass.field(JMod.PRIVATE | JMod.TRANSIENT, objectFormatterClass, formatterFieldName, JExpr._null());
+		final JFieldVar objectFormatterField = definedClass.field(formatterFieldModifiers, objectFormatterClass, formatterFieldName, JExpr._null());
 		final JMethod toStringMethod = definedClass.method(methodModifiers, methodReturnType, methodName);
 		//toStringMethod.annotate(Override.class);
 		final JConditional ifStatement = toStringMethod.body()._if(objectFormatterField.eq(JExpr._null()));
