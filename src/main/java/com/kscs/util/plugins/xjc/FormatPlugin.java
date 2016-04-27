@@ -24,14 +24,14 @@
 
 package com.kscs.util.plugins.xjc;
 
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
+
+import com.kscs.util.plugins.xjc.base.AbstractPlugin;
+import com.kscs.util.plugins.xjc.base.Opt;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JConditional;
@@ -41,9 +41,7 @@ import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JType;
-import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
-import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.model.CPluginCustomization;
 import com.sun.tools.xjc.model.Model;
 import com.sun.tools.xjc.outline.ClassOutline;
@@ -59,7 +57,7 @@ import org.xml.sax.SAXParseException;
  * customizations.
  * @author Mirko Klemm 2015-01-22
  */
-public class FormatPlugin extends Plugin {
+public class FormatPlugin extends AbstractPlugin {
 
 	public static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(FormatPlugin.class.getName());
 	public static final String OPTION_NAME = "-Xformat";
@@ -74,59 +72,22 @@ public class FormatPlugin extends Plugin {
 	public static final String DEFAULT_OBJECT_FORMATTER_FIELD_NAME = "__objectFormatter";
 	public static final String DEFAULT_GENERATED_METHOD_RETURN_TYPE_NAME = "java.lang.String";
 
+	@Opt
 	private String objectFormatterClassName = null;
+	@Opt
 	private String objectFormatterMethodName = FormatPlugin.DEFAULT_OBJECT_FORMATTER_METHOD_NAME;
+	@Opt
 	private String objectFormatterFieldName = FormatPlugin.DEFAULT_OBJECT_FORMATTER_FIELD_NAME;
-
+	@Opt
 	private String generatedMethodName = FormatPlugin.DEFAULT_GENERATED_METHOD_NAME;
+	@Opt
 	private String generatedMethodModifiers = FormatPlugin.DEFAULT_GENERATED_METHOD_MODIFIERS;
+	@Opt
 	private String generatedMethodReturnTypeName = FormatPlugin.DEFAULT_GENERATED_METHOD_RETURN_TYPE_NAME;
-
-	public final Map<String, Setter<String>> setters = new HashMap<String, Setter<String>>() {{
-		put("-formatter", new Setter<String>() {
-			public void set(final String val) {
-				FormatPlugin.this.objectFormatterClassName = val;
-			}
-		});
-		put("-formatter-method", new Setter<String>() {
-			public void set(final String val) {
-				FormatPlugin.this.objectFormatterMethodName = val;
-			}
-		});
-		put("-formatter-field", new Setter<String>() {
-			public void set(final String val) {
-				FormatPlugin.this.objectFormatterFieldName = val;
-			}
-		});
-		put("-generated-method", new Setter<String>() {
-			public void set(final String val) {
-				FormatPlugin.this.generatedMethodName = val;
-			}
-		});
-		put("-generated-method-type", new Setter<String>() {
-			public void set(final String val) {
-				FormatPlugin.this.generatedMethodReturnTypeName = val;
-			}
-		});
-		put("-generated-method-modifiers", new Setter<String>() {
-			public void set(final String val) {
-				FormatPlugin.this.generatedMethodModifiers = val;
-			}
-		});
-	}};
 
 	@Override
 	public String getOptionName() {
 		return FormatPlugin.OPTION_NAME.substring(1);
-	}
-
-	@Override
-	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
-		int currentIndex = i;
-		if ((FormatPlugin.OPTION_NAME).equals(args[i])) {
-			currentIndex = parseOptions(args, i, this.setters);
-		}
-		return currentIndex - i + 1;
 	}
 
 	@Override
@@ -212,26 +173,7 @@ public class FormatPlugin extends Plugin {
 		toStringMethod.body()._return(objectFormatterField.invoke(formatterMethodName).arg(JExpr._this()));
 	}
 
-	private int parseOptions(final String[] args, int i, final Map<String, Setter<String>> setters) throws BadCommandLineException {
-		for (final String name : setters.keySet()) {
-			if (args.length > i + 1) {
-				if (args[i + 1].equalsIgnoreCase(name)) {
-					if (args.length > i + 2 && !args[i + 2].startsWith("-")) {
-						setters.get(name).set(args[i + 2]);
-						i += 2;
-					} else {
-						throw new BadCommandLineException(MessageFormat.format(FormatPlugin.RESOURCE_BUNDLE.getString("exception.missingArgument"), name));
-					}
-				} else if (args[i + 1].toLowerCase().startsWith(name + "=")) {
-					setters.get(name).set(args[i + 1].substring(name.length() + 1));
-					i++;
-				}
-			} else {
-				return 0;
-			}
-		}
-		return i;
-	}
+
 
 	private int parseModifiers(final String modifiers) {
 		int mod = JMod.NONE;
@@ -307,7 +249,4 @@ public class FormatPlugin extends Plugin {
 		return model.getCustomizations().find(FormatPlugin.CUSTOMIZATION_NS, elementName);
 	}
 
-	private static interface Setter<T> {
-		void set(final T val);
-	}
 }
