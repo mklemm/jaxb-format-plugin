@@ -4,16 +4,18 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.kscs.util</groupId>
+	<parent>
+		<groupId>net.codesup.util</groupId>
+		<artifactId>jaxb-plugin-parent</artifactId>
+		<version>1.1.0</version>
+	</parent>
+
+	<groupId>net.codesup.util</groupId>
 	<artifactId>jaxb-format-plugin</artifactId>
-	<version>1.0.1</version>
+	<version>1.1.0-SNAPSHOT</version>
 
 	<name>JAXB instance formatting plugin</name>
 	<packaging>jar</packaging>
-
-	<properties>
-		<github.global.server>github</github.global.server>
-	</properties>
 
 	<scm>
 		<connection>scm:git:https://github.com/mklemm/jaxb-format-plugin.git</connection>
@@ -24,20 +26,9 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.sun.xml.bind</groupId>
-			<artifactId>jaxb-xjc</artifactId>
-			<version>2.2.7</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.xml.bind</groupId>
-			<artifactId>jaxb-impl</artifactId>
-			<version>2.2.7</version>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.11</version>
-			<scope>test</scope>
+			<groupId>net.codesup.util</groupId>
+			<artifactId>jaxb-plugin-lib</artifactId>
+			<version>1.1.0</version>
 		</dependency>
 	</dependencies>
 
@@ -54,32 +45,11 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-release-plugin</artifactId>
-				<version>2.3.2</version>
-				<dependencies>
-					<dependency>
-						<groupId>org.apache.maven.scm</groupId>
-						<artifactId>maven-scm-provider-gitexe</artifactId>
-						<version>1.2</version>
-					</dependency>
-				</dependencies>
 				<configuration>
 					<tagBase>https://github.com/mklemm/jaxb-format-plugin.git</tagBase>
 				</configuration>
 			</plugin>
 		</plugins>
 	</build>
-
-	<distributionManagement>
-		<snapshotRepository>
-			<id>default-server</id>
-			<name>snapshots-repo</name>
-			<url>${default.snapshots}</url>
-		</snapshotRepository>
-		<repository>
-			<id>default-server</id>
-			<name>releases-repo</name>
-			<url>${default.releases}</url>
-		</repository>
-	</distributionManagement>
 
 </project>
