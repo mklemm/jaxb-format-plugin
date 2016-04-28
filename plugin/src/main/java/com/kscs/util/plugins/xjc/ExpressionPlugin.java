@@ -99,12 +99,14 @@ public class ExpressionPlugin extends AbstractPlugin {
 	public static final String EXPRESSIONS_CUSTOMIZATION_NAME = "expressions";
 	public static final String EVALUATOR_CUSTOMIZATION_NAME = "evaluator";
 	public static final String EVALUATORS_CUSTOMIZATION_NAME = "evaluators";
+	public static final String METHOD_CUSTOMIZATION_NAME = "method";
 	public static final String DEFAULT_GENERATED_METHOD_MODIFIERS = "public";
 	public static final List<String> CUSTOM_ELEMENTS = Arrays.asList(
 			ExpressionPlugin.EXPRESSION_CUSTOMIZATION_NAME,
 			ExpressionPlugin.EXPRESSIONS_CUSTOMIZATION_NAME,
 			ExpressionPlugin.EVALUATOR_CUSTOMIZATION_NAME,
-			ExpressionPlugin.EVALUATORS_CUSTOMIZATION_NAME);
+			ExpressionPlugin.EVALUATORS_CUSTOMIZATION_NAME,
+			ExpressionPlugin.METHOD_CUSTOMIZATION_NAME);
 	public static final String DEFAULT_EVALUATOR_METHOD_NAME = "evaluate";
 	public static final String DEFAULT_EVALUATOR_FIELD_NAME = "__evaluator%s";
 
@@ -274,36 +276,49 @@ public class ExpressionPlugin extends AbstractPlugin {
 				errorHandler.error(new SAXParseException(ExpressionPlugin.RESOURCE_BUNDLE.getString("exception.missingMethod"), classOutline.target.getLocator()));
 				continue;
 			}
-			JFieldVar evaluatorField = evaluatorFields.get(evaluator.getName());
-			if(evaluatorField == null) {
-				final JClass fieldType = model.ref(evaluator.getClazz());
-				evaluatorField = implClass.field(JMod.PRIVATE | JMod.TRANSIENT, fieldType, String.format(ExpressionPlugin.DEFAULT_EVALUATOR_FIELD_NAME, outline.getModel().getNameConverter().toClassName(evaluator.getName())));
-				evaluatorFields.put(evaluator.getName(), evaluatorField);
-			}
-
 			final JType methodReturnType = translateType(outline, expression);
-			final String methodName = coalesce(expression.getMethodName(), "get"+ outline.getModel().getNameConverter().toPropertyName(expression.getName()));
-			final JMethod toStringMethod = implClass.method(JMod.PUBLIC, methodReturnType, methodName);
-
-			final JConditional ifStatement = toStringMethod.body()._if(evaluatorField.eq(JExpr._null()));
-			ifStatement._then().assign(evaluatorField, JExpr._new(evaluatorField.type()).arg(JExpr._this()));
-			final JExpression expressionLiteral = !method.isLiteral()
-					? JExpr.lit(expression.getSelect())
-					: JExpr.direct(expression.getSelect());
-			final JInvocation invocation = evaluatorField.invoke(toStringMethod).arg(expressionLiteral);
-			if(method.getTypePassing() == Language.JAVA) {
-				if(methodReturnType instanceof JClass) {
-					invocation.arg(JExpr.dotclass((JClass)methodReturnType));
-				} else {
-					invocation.arg(methodReturnType.boxify().dotclass());
+			final String methodName = coalesce(expression.getMethodName(), "get" + outline.getModel().getNameConverter().toPropertyName(expression.getName()));
+			final JMethod evaluationMethod = implClass.method(JMod.PUBLIC, methodReturnType, methodName);
+			final JInvocation simpleInvoke;
+			if(evaluator.isStatic()) {
+				simpleInvoke = model.ref(evaluator.getClazz()).staticInvoke(evaluationMethod);
+			} else {
+				JFieldVar evaluatorField = evaluatorFields.get(evaluator.getName());
+				if (evaluatorField == null) {
+					final JClass fieldType = model.ref(evaluator.getClazz());
+					evaluatorField = implClass.field(
+							JMod.PRIVATE | JMod.TRANSIENT,
+							fieldType,
+							evaluator.getField() == null
+									? String.format(ExpressionPlugin.DEFAULT_EVALUATOR_FIELD_NAME, outline.getModel().getNameConverter().toClassName(evaluator.getName()))
+									: evaluator.getField()
+					);
+					evaluatorFields.put(evaluator.getName(), evaluatorField);
 				}
-			} else if(method.getTypePassing() == Language.XML_SCHEMA){
-				final JClass qNameType = model.ref(QName.class);
-				invocation.arg(JExpr._new(qNameType).arg(expression.getType().getNamespaceURI()).arg(expression.getType().getLocalPart()).arg(expression.getType().getPrefix()));
+				final JConditional ifStatement = evaluationMethod.body()._if(evaluatorField.eq(JExpr._null()));
+				ifStatement._then().assign(evaluatorField, JExpr._new(evaluatorField.type()).arg(JExpr._this()));
+				simpleInvoke = evaluatorField.invoke(evaluationMethod);
 			}
-			toStringMethod.body()._return(invocation);
+			evaluationMethod.body()._return(generateInvocation(expression, evaluator, method, methodReturnType, simpleInvoke));
 		}
+	}
 
+	private JInvocation generateInvocation(final Expression expression, final Evaluator evaluator, final Method method, final JType methodReturnType, final JInvocation invocation) {
+		final JExpression expressionLiteral = !method.isLiteral()
+				? JExpr.lit(expression.getSelect())
+				: JExpr.direct(expression.getSelect());
+		invocation.arg(JExpr._this()).arg(expressionLiteral);
+		if (method.getTypePassing() == Language.JAVA) {
+			if (methodReturnType instanceof JClass) {
+				invocation.arg(JExpr.dotclass((JClass)methodReturnType));
+			} else {
+				invocation.arg(methodReturnType.boxify().dotclass());
+			}
+		} else if (method.getTypePassing() == Language.XML_SCHEMA) {
+			final JClass qNameType = methodReturnType.owner().ref(QName.class);
+			invocation.arg(JExpr._new(qNameType).arg(expression.getType().getNamespaceURI()).arg(expression.getType().getLocalPart()).arg(expression.getType().getPrefix()));
+		}
+		return invocation;
 	}
 
 	private JType translateType(final Outline model, final Expression expression) {
