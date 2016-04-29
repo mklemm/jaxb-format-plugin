@@ -1,7 +1,7 @@
 # jaxb-expression-plugin
 Plugin for the JAXB (Java API for XML Binding) Schema-to-Source compiler (XJC) that generates
 methods that evaluate a specific expression on an instance of a generated class.
-The expressions can be of any format, provided there is an evaluatro class that fulfils the
+The expressions can be of any format, provided there is an evaluator class that fulfils the
 properties below, and provided the expression can be written in string form in
 the XML Schema definition (XSD) file.
 
@@ -20,7 +20,7 @@ The expression plugin lets you implement simple additional methods for a generat
 keeping most of your XSDs and binding files language-independent. It only allows to generate
 read-only logic, which is good enough in a functional environment.
 For example, when combined with the [jaxb-object-formatter](http://github.com/mklemm/jaxb-object-formatter) module,
-which uses a fork of the apache [commons-jxpath](http://github.com/mklemm/commons-jxpath) project, 
+which uses a fork of the apache [commons-jxpath](http://github.com/mklemm/commons-jxpath) project,
 you can express certain read-only logic in terms of XPath-expressions that are evaluated on the live
 object graph, thus staying within the scope of W3C XML standards, so you can easily
 share your annotated XSDs, and third-party client code may even use the annotations
@@ -55,7 +55,7 @@ the generated code is compiled by the java compiler.
 There are two different patterns you can implement an evaluator class as:
 1. Instance evaluator
 2. Static (utility class) evaluator
- 
+
 #### Instance Evaluator
 The evaluator class must have the following properties:
 
@@ -69,7 +69,7 @@ The evaluator class must have the following properties:
 	type of the generated method.
 	Usually, an evaluator class will compile the expression on the first
 	invocation and will cache the compiled version for repeated usage.
-	
+
 #### Static (Utility) Evaluator
 The evaluator class must have the following properties:
 
