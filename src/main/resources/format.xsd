@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema xmlns="http://www.w3.org/2001/XMLSchema"
-		targetNamespace="http://www.kscs.com/util/jaxb/format">
+		targetNamespace="http://www.codesup.net/jaxb/plugins/expression">
 	<!--
 	  ~ MIT License
 	  ~
@@ -41,6 +41,40 @@
 						In any case, invocation of the formatting method must return a representation
 						of the current instance of the generated class dependent on this expression.
 						See below for examples on how to do this with XPath.
+					</documentation>
+				</annotation>
+			</attribute>
+			<attribute name="method-name" type="token" use="optional">
+				<annotation>
+					<documentation>
+						Name of the method that returns the expression evaluation result.
+						In contrast to "name", this defines the method name literally, i.e.
+						the method will be named exactly as specified here.
+						Not that the exact rules for the contents of this attribute
+						are language-specific, whereas "name" allows you to specify a
+						name in a language-neutral way.
+					</documentation>
+				</annotation>
+			</attribute>
+			<attribute name="name" type="NCName" use="optional">
+				<annotation>
+					<documentation>
+						Assigns a name to this expression. The name specifed here
+						should follow XML naming conventions, so it doesn't make
+						an assumption about the programming language the code is generated in.
+						The translation of this name to a method name is then language-specific.
+						In generated Java code, for example,  this will
+						result in a generated method named "getXXX" where XXX is the name
+						specified here, converted to Java identifier conventions.
+						For finer control, "method-name" could be used, which will
+						define the method name literally without translation of any kind.
+					</documentation>
+				</annotation>
+			</attribute>
+			<attribute name="type" type="QName" use="optional">
+				<annotation>
+					<documentation>
+						The result type of the expression, given as a QName
 					</documentation>
 				</annotation>
 			</attribute>
