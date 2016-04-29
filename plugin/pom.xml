@@ -22,9 +22,9 @@
 	<url>https://github.com/mklemm/jaxb-expression-plugin</url>
 
 	<scm>
-		<connection>scm:git:https://github.com/mklemm/jaxb-format-plugin.git</connection>
-		<developerConnection>scm:git:https://github.com/mklemm/jaxb-format-plugin.git</developerConnection>
-		<url>https://github.com/mklemm/jaxb-format-plugin.git</url>
+		<connection>scm:git:https://github.com/mklemm/jaxb-expression-plugin.git</connection>
+		<developerConnection>scm:git:https://github.com/mklemm/jaxb-expression-plugin.git</developerConnection>
+		<url>https://github.com/mklemm/jaxb-expression-plugin.git</url>
 		<tag>jaxb-format-plugin-1.0.1</tag>
 	</scm>
 
@@ -50,7 +50,7 @@
 			<plugin>
 				<artifactId>maven-release-plugin</artifactId>
 				<configuration>
-					<tagBase>https://github.com/mklemm/jaxb-format-plugin.git</tagBase>
+					<tagBase>https://github.com/mklemm/jaxb-expression-plugin.git</tagBase>
 				</configuration>
 			</plugin>
 		</plugins>
