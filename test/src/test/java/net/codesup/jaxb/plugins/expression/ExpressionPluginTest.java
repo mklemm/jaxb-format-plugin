@@ -1,4 +1,4 @@
-package com.kscs.util.plugins.xjc;
+package net.codesup.jaxb.plugins.expression;
 
 import org.junit.Test;
 

@@ -13,37 +13,57 @@
 >
 	<annotation>
 		<appinfo>
-			<ep:evaluator class="com.kscs.util.jaxb.Evaluator">
-				<ep:method name="evaluate"/>
-			</ep:evaluator>
+			<ep:evaluators>
+				<ep:evaluator/>
+				<ep:evaluator class="net.codesup.jxpath.formatter.Evaluator">
+					<ep:method name="evaluate"/>
+				</ep:evaluator>
+				<ep:evaluator class="net.codesup.jaxb.plugins.expression.LiteralEvaluator" static="true">
+					<ep:method name="check" type-passing="java" literal="true"/>
+					<ep:method name="loop" type-passing="xml-schema" literal="false"/>
+				</ep:evaluator>
+			</ep:evaluators>
 		</appinfo>
 	</annotation>
 
 	<element name="global-defaultref-single">
-	<complexType>
-		<annotation>
-			<documentation>Implementation to administration entity User (author): Frank Hafner</documentation>
-			<appinfo>
-				<ep:expression method-name="toString" select="concat(user-id, ' - ', user-last-name, ', ', user-first-name)"/>
-			</appinfo>
-		</annotation>
-		<sequence>
-			<element minOccurs="0" name="user-id" type="string"/>
-			<element minOccurs="0" name="user-last-name" type="string"/>
-			<element minOccurs="0" name="user-first-name" type="string"/>
-			<element minOccurs="0" name="password" type="string"/>
-			<element minOccurs="0" name="role" type="string"/>
-			<element minOccurs="0" name="department" type="string"/>
-			<element minOccurs="0" name="divisions" type="string"/>
-			<element minOccurs="0" name="offices" type="string"/>
-			<element minOccurs="0" name="created-at" type="dateTime"/>
-			<element minOccurs="0" name="created-by" type="string"/>
-			<element minOccurs="0" name="changed-at" type="dateTime"/>
-			<element minOccurs="0" name="changed-by" type="string"/>
-			<element name="confirm-privilege" type="int"/>
-			<element minOccurs="0" name="global-search-term" type="string"/>
-			<element name="auto-logon" type="boolean"/>
-		</sequence>
-	</complexType>
+		<complexType>
+			<annotation>
+				<appinfo>
+					<ep:expressions>
+						<ep:expression name="logon-state"
+									   select="autoLogon ? &quot;Logon Enabled&quot; : &quot;Logon Off&quot;"
+									   type="string"/>
+						<ep:expression select="userId.hashCode()" method-name="hashCode" type="int"/>
+						<ep:expression select="concat(user-id, ' - ', user-last-name, ', ', user-first-name)">
+							<ep:evaluator-ref name="Evaluator"/>
+						</ep:expression>
+						<ep:expression name="int-value" select="confirmPrivilege + 1200" type="int">
+							<ep:evaluator-ref name="LiteralEvaluator" method="check"/>
+						</ep:expression>
+						<ep:expression name="loop-value" select="ebm 2008" type="tns:global-defaultref-single">
+							<ep:evaluator-ref name="LiteralEvaluator" method="loop"/>
+						</ep:expression>
+					</ep:expressions>
+				</appinfo>
+			</annotation>
+			<sequence>
+				<element minOccurs="0" name="user-id" type="string"/>
+				<element minOccurs="0" name="user-last-name" type="string"/>
+				<element minOccurs="0" name="user-first-name" type="string"/>
+				<element minOccurs="0" name="password" type="string"/>
+				<element minOccurs="0" name="role" type="string"/>
+				<element minOccurs="0" name="department" type="string"/>
+				<element minOccurs="0" name="divisions" type="string"/>
+				<element minOccurs="0" name="offices" type="string"/>
+				<element minOccurs="0" name="created-at" type="dateTime"/>
+				<element minOccurs="0" name="created-by" type="string"/>
+				<element minOccurs="0" name="changed-at" type="dateTime"/>
+				<element minOccurs="0" name="changed-by" type="string"/>
+				<element name="confirm-privilege" type="int"/>
+				<element minOccurs="0" name="global-search-term" type="string"/>
+				<element name="auto-logon" type="boolean"/>
+			</sequence>
+		</complexType>
 	</element>
 </schema>

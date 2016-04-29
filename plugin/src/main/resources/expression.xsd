@@ -32,10 +32,12 @@
 			<enumeration value="java"/>
 		</restriction>
 	</simpleType>
-	<complexType name="evaluator-ref">
-		<attribute name="name" type="NCName" use="required"/>
-		<attribute name="method" type="NCName" use="optional"/>
-	</complexType>
+	<element name="evaluator-ref">
+		<complexType>
+			<attribute name="name" type="NCName" use="required"/>
+			<attribute name="method" type="NCName" use="optional"/>
+		</complexType>
+	</element>
 	<element name="expression">
 		<annotation>
 			<documentation>
@@ -46,7 +48,7 @@
 		</annotation>
 		<complexType>
 			<sequence>
-				<element name="evaluator" type="tns:evaluator-ref" minOccurs="0">
+				<element ref="tns:evaluator-ref" minOccurs="0">
 					<annotation>
 						<documentation>
 							Select a specific evaluator configuration for the expressions under
@@ -86,7 +88,7 @@
 						should follow XML naming conventions, so it doesn't make
 						an assumption about the programming language the code is generated in.
 						The translation of this name to a method name is then language-specific.
-						In generated Java code, for example,  this will
+						In generated Java code, for example, this will
 						result in a generated method named "getXXX" where XXX is the name
 						specified here, converted to Java identifier conventions.
 						For finer control, "method-name" could be used, which will
@@ -164,7 +166,7 @@
 	<element name="expressions">
 		<complexType>
 			<sequence>
-				<element name="evaluator" type="tns:evaluator-ref" minOccurs="0">
+				<element ref="tns:evaluator-ref" minOccurs="0">
 					<annotation>
 						<documentation>
 							Select a specific evaluator configuration for the expressions under
@@ -180,9 +182,15 @@
 	<element name="evaluator">
 		<annotation>
 			<documentation>
-				This binding customization specifies the formatter class which
-				will be called in the generated code to create a formatted
-				representation of an instance of the generated class.
+				This binding customization specifies the evaluator class which
+				will be called in the generated code to evaluate the given expression.
+				If static=false (the default), the class must have a one-argument
+				constructor that receives the expression. It will be instantiated once
+				per entity instance when an expression on that instance is evaluated
+				for the first time.
+				If static=true, the class will never be instantiated, it is
+				suggested that it is marked "final" and has a private no-arg constructor
+				in this case.
 			</documentation>
 		</annotation>
 		<complexType>
@@ -219,14 +227,8 @@
 					<documentation>
 						The fully qualified name of the java class to evaluate all expressions
 						defined in this scope.
-						If static=false (the default), the class must have a one-argument
-						constructor that receives the expression. It will be instantiated once
-						per entity instance when an expression on that instance is evaluated
-						for the first time.
-						If static=true, the class will never be instantiated, it is
-						suggested that it is marked "final" and has a private no-arg constructor
-						in this case.
-						Default: Name configured on the command line with &quot;-evaluator&quot;.
+						If omitted, methods generated referencing this evaluator will contain
+						no call to an evaluator method, but return their expression literally.
 					</documentation>
 				</annotation>
 			</attribute>
@@ -243,7 +245,8 @@
 			<attribute name="static" type="boolean" use="optional" default="false">
 				<annotation>
 					<documentation>
-						Generate the expression evaluation code in a way that assumes that the evaluator class is a utility class.
+						Generate the expression evaluation code in a way that assumes that the evaluator class is a
+						utility class.
 						I.e. There will be no instance field, all evaluation methods will take the instance of the
 						generated entity class as the first parameter, and they will be called statically on the
 						evaluator class.
