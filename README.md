@@ -1,3 +1,5 @@
+<span color="red">This plugin is superseded by the [jaxb-expression-plugin](http://github.com/mklemm/jaxb-expression-plugin), which can do everything the format plugin does, and more. I suggest you give jaxb-expression-plugin a try.</span>
+
 # jaxb-format-plugin
 Plugin for the JAXB (Java API for XML Binding) Schema-to-Source compiler (XJC) that generates code
 to format instances of generated classes via an arbitrary helper class.
